@@ -1,0 +1,8 @@
+config SENSORS_MICROWAVE
+         tristate "Microwave sensor"
+         help
+           This driver support the microwave sensor.
+
+           To compile this driver as a module, choose M here. The module
+	   will be called microwave.
+
