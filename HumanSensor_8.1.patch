@@ -1,0 +1,1353 @@
+commit aea5bedd50b4857a0a5d183f301e0c64cb68d4f4
+Author: shenhb <shenhb@topband.com.cn>
+Date:   Wed Nov 6 17:30:48 2019 +0800
+
+    „Äêhuman sensor„ÄëÊîØÊåÅ‰∫∫‰ΩìÊé•ËøëÊÑüÂ∫îsensor
+
+diff --git a/device/rockchip/common/ueventd.rockchip.rc b/device/rockchip/common/ueventd.rockchip.rc
+index d516da0..c81ad02 100755
+--- a/device/rockchip/common/ueventd.rockchip.rc
++++ b/device/rockchip/common/ueventd.rockchip.rc
+@@ -12,6 +12,7 @@
+ /dev/psensor              0660   system     system
+ /dev/temperature          0660   system     system
+ /dev/pressure             0660   system     system
++/dev/mwsensor             0660   system     system
+ 
+ /dev/ion                  0666   system     system
+ /dev/galcore              0666   system     graphics
+diff --git a/device/rockchip/rk3288/BoardConfig.mk b/device/rockchip/rk3288/BoardConfig.mk
+index dc99f5d..7c73352 100755
+--- a/device/rockchip/rk3288/BoardConfig.mk
++++ b/device/rockchip/rk3288/BoardConfig.mk
+@@ -46,8 +46,8 @@ TARGET_USES_64_BIT_BINDER := false
+ TARGET_PREFER_32_BIT := true
+ 
+ # Sensors
+-BOARD_SENSOR_ST := false
+-BOARD_SENSOR_MPU_PAD := true
++BOARD_SENSOR_ST := true
++BOARD_SENSOR_MPU_PAD := false
+ 
+ BOARD_USES_GENERIC_INVENSENSE := false
+ 
+diff --git a/frameworks/base/api/current.txt b/frameworks/base/api/current.txt
+index 3810ce1..5e088a1 100644
+--- a/frameworks/base/api/current.txt
++++ b/frameworks/base/api/current.txt
+@@ -14867,6 +14867,7 @@ package android.hardware {
+     field public static final java.lang.String STRING_TYPE_GYROSCOPE_UNCALIBRATED = "android.sensor.gyroscope_uncalibrated";
+     field public static final java.lang.String STRING_TYPE_HEART_BEAT = "android.sensor.heart_beat";
+     field public static final java.lang.String STRING_TYPE_HEART_RATE = "android.sensor.heart_rate";
++    field public static final java.lang.String STRING_TYPE_HUMAN = "android.sensor.human";
+     field public static final java.lang.String STRING_TYPE_LIGHT = "android.sensor.light";
+     field public static final java.lang.String STRING_TYPE_LINEAR_ACCELERATION = "android.sensor.linear_acceleration";
+     field public static final java.lang.String STRING_TYPE_LOW_LATENCY_OFFBODY_DETECT = "android.sensor.low_latency_offbody_detect";
+@@ -14896,6 +14897,7 @@ package android.hardware {
+     field public static final int TYPE_GYROSCOPE_UNCALIBRATED = 16; // 0x10
+     field public static final int TYPE_HEART_BEAT = 31; // 0x1f
+     field public static final int TYPE_HEART_RATE = 21; // 0x15
++    field public static final int TYPE_HUMAN = 36; // 0x24
+     field public static final int TYPE_LIGHT = 5; // 0x5
+     field public static final int TYPE_LINEAR_ACCELERATION = 10; // 0xa
+     field public static final int TYPE_LOW_LATENCY_OFFBODY_DETECT = 34; // 0x22
+@@ -15042,14 +15044,15 @@ package android.hardware {
+     field public static final deprecated int RAW_DATA_Y = 4; // 0x4
+     field public static final deprecated int RAW_DATA_Z = 5; // 0x5
+     field public static final deprecated int SENSOR_ACCELEROMETER = 2; // 0x2
+-    field public static final deprecated int SENSOR_ALL = 127; // 0x7f
++    field public static final deprecated int SENSOR_ALL = 255; // 0xff
+     field public static final int SENSOR_DELAY_FASTEST = 0; // 0x0
+     field public static final int SENSOR_DELAY_GAME = 1; // 0x1
+     field public static final int SENSOR_DELAY_NORMAL = 3; // 0x3
+     field public static final int SENSOR_DELAY_UI = 2; // 0x2
++    field public static final deprecated int SENSOR_HUMAN = 256; // 0x100
+     field public static final deprecated int SENSOR_LIGHT = 16; // 0x10
+     field public static final deprecated int SENSOR_MAGNETIC_FIELD = 8; // 0x8
+-    field public static final deprecated int SENSOR_MAX = 64; // 0x40
++    field public static final deprecated int SENSOR_MAX = 128; // 0x80
+     field public static final deprecated int SENSOR_MIN = 1; // 0x1
+     field public static final deprecated int SENSOR_ORIENTATION = 1; // 0x1
+     field public static final deprecated int SENSOR_ORIENTATION_RAW = 128; // 0x80
+diff --git a/frameworks/base/api/system-current.txt b/frameworks/base/api/system-current.txt
+index 491d4d5..4a4d4c9 100644
+--- a/frameworks/base/api/system-current.txt
++++ b/frameworks/base/api/system-current.txt
+@@ -15602,6 +15602,7 @@ package android.hardware {
+     field public static final java.lang.String STRING_TYPE_GYROSCOPE_UNCALIBRATED = "android.sensor.gyroscope_uncalibrated";
+     field public static final java.lang.String STRING_TYPE_HEART_BEAT = "android.sensor.heart_beat";
+     field public static final java.lang.String STRING_TYPE_HEART_RATE = "android.sensor.heart_rate";
++    field public static final java.lang.String STRING_TYPE_HUMAN = "android.sensor.human";
+     field public static final java.lang.String STRING_TYPE_LIGHT = "android.sensor.light";
+     field public static final java.lang.String STRING_TYPE_LINEAR_ACCELERATION = "android.sensor.linear_acceleration";
+     field public static final java.lang.String STRING_TYPE_LOW_LATENCY_OFFBODY_DETECT = "android.sensor.low_latency_offbody_detect";
+@@ -15633,6 +15634,7 @@ package android.hardware {
+     field public static final int TYPE_GYROSCOPE_UNCALIBRATED = 16; // 0x10
+     field public static final int TYPE_HEART_BEAT = 31; // 0x1f
+     field public static final int TYPE_HEART_RATE = 21; // 0x15
++    field public static final int TYPE_HUMAN = 36; // 0x24
+     field public static final int TYPE_LIGHT = 5; // 0x5
+     field public static final int TYPE_LINEAR_ACCELERATION = 10; // 0xa
+     field public static final int TYPE_LOW_LATENCY_OFFBODY_DETECT = 34; // 0x22
+@@ -15782,14 +15784,15 @@ package android.hardware {
+     field public static final deprecated int RAW_DATA_Y = 4; // 0x4
+     field public static final deprecated int RAW_DATA_Z = 5; // 0x5
+     field public static final deprecated int SENSOR_ACCELEROMETER = 2; // 0x2
+-    field public static final deprecated int SENSOR_ALL = 127; // 0x7f
++    field public static final deprecated int SENSOR_ALL = 255; // 0xff
+     field public static final int SENSOR_DELAY_FASTEST = 0; // 0x0
+     field public static final int SENSOR_DELAY_GAME = 1; // 0x1
+     field public static final int SENSOR_DELAY_NORMAL = 3; // 0x3
+     field public static final int SENSOR_DELAY_UI = 2; // 0x2
++    field public static final deprecated int SENSOR_HUMAN = 256; // 0x100
+     field public static final deprecated int SENSOR_LIGHT = 16; // 0x10
+     field public static final deprecated int SENSOR_MAGNETIC_FIELD = 8; // 0x8
+-    field public static final deprecated int SENSOR_MAX = 64; // 0x40
++    field public static final deprecated int SENSOR_MAX = 128; // 0x80
+     field public static final deprecated int SENSOR_MIN = 1; // 0x1
+     field public static final deprecated int SENSOR_ORIENTATION = 1; // 0x1
+     field public static final deprecated int SENSOR_ORIENTATION_RAW = 128; // 0x80
+diff --git a/frameworks/base/api/test-current.txt b/frameworks/base/api/test-current.txt
+index 0186f74..188e182 100644
+--- a/frameworks/base/api/test-current.txt
++++ b/frameworks/base/api/test-current.txt
+@@ -14961,6 +14961,7 @@ package android.hardware {
+     field public static final java.lang.String STRING_TYPE_GYROSCOPE_UNCALIBRATED = "android.sensor.gyroscope_uncalibrated";
+     field public static final java.lang.String STRING_TYPE_HEART_BEAT = "android.sensor.heart_beat";
+     field public static final java.lang.String STRING_TYPE_HEART_RATE = "android.sensor.heart_rate";
++    field public static final java.lang.String STRING_TYPE_HUMAN = "android.sensor.human";
+     field public static final java.lang.String STRING_TYPE_LIGHT = "android.sensor.light";
+     field public static final java.lang.String STRING_TYPE_LINEAR_ACCELERATION = "android.sensor.linear_acceleration";
+     field public static final java.lang.String STRING_TYPE_LOW_LATENCY_OFFBODY_DETECT = "android.sensor.low_latency_offbody_detect";
+@@ -14990,6 +14991,7 @@ package android.hardware {
+     field public static final int TYPE_GYROSCOPE_UNCALIBRATED = 16; // 0x10
+     field public static final int TYPE_HEART_BEAT = 31; // 0x1f
+     field public static final int TYPE_HEART_RATE = 21; // 0x15
++    field public static final int TYPE_HUMAN = 36; // 0x24
+     field public static final int TYPE_LIGHT = 5; // 0x5
+     field public static final int TYPE_LINEAR_ACCELERATION = 10; // 0xa
+     field public static final int TYPE_LOW_LATENCY_OFFBODY_DETECT = 34; // 0x22
+@@ -15136,14 +15138,15 @@ package android.hardware {
+     field public static final deprecated int RAW_DATA_Y = 4; // 0x4
+     field public static final deprecated int RAW_DATA_Z = 5; // 0x5
+     field public static final deprecated int SENSOR_ACCELEROMETER = 2; // 0x2
+-    field public static final deprecated int SENSOR_ALL = 127; // 0x7f
++    field public static final deprecated int SENSOR_ALL = 255; // 0xff
+     field public static final int SENSOR_DELAY_FASTEST = 0; // 0x0
+     field public static final int SENSOR_DELAY_GAME = 1; // 0x1
+     field public static final int SENSOR_DELAY_NORMAL = 3; // 0x3
+     field public static final int SENSOR_DELAY_UI = 2; // 0x2
++    field public static final deprecated int SENSOR_HUMAN = 256; // 0x100
+     field public static final deprecated int SENSOR_LIGHT = 16; // 0x10
+     field public static final deprecated int SENSOR_MAGNETIC_FIELD = 8; // 0x8
+-    field public static final deprecated int SENSOR_MAX = 64; // 0x40
++    field public static final deprecated int SENSOR_MAX = 128; // 0x80
+     field public static final deprecated int SENSOR_MIN = 1; // 0x1
+     field public static final deprecated int SENSOR_ORIENTATION = 1; // 0x1
+     field public static final deprecated int SENSOR_ORIENTATION_RAW = 128; // 0x80
+diff --git a/frameworks/base/core/java/android/hardware/LegacySensorManager.java b/frameworks/base/core/java/android/hardware/LegacySensorManager.java
+old mode 100644
+new mode 100755
+index f5cf3f7..ceb2357
+--- a/frameworks/base/core/java/android/hardware/LegacySensorManager.java
++++ b/frameworks/base/core/java/android/hardware/LegacySensorManager.java
+@@ -82,6 +82,9 @@ final class LegacySensorManager {
+                     result |= SensorManager.SENSOR_ORIENTATION
+                             | SensorManager.SENSOR_ORIENTATION_RAW;
+                     break;
++                case Sensor.TYPE_HUMAN:
++                    result |= SensorManager.SENSOR_HUMAN;
++                    break;
+             }
+         }
+         return result;
+@@ -102,6 +105,8 @@ final class LegacySensorManager {
+                 Sensor.TYPE_ORIENTATION, listener, sensors, rate) || result;
+         result = registerLegacyListener(SensorManager.SENSOR_TEMPERATURE,
+                 Sensor.TYPE_TEMPERATURE, listener, sensors, rate) || result;
++        result = registerLegacyListener(SensorManager.SENSOR_HUMAN,
++                Sensor.TYPE_HUMAN, listener, sensors, rate) || result;
+         return result;
+     }
+ 
+@@ -156,6 +161,8 @@ final class LegacySensorManager {
+                 listener, sensors);
+         unregisterLegacyListener(SensorManager.SENSOR_TEMPERATURE, Sensor.TYPE_TEMPERATURE,
+                 listener, sensors);
++        unregisterLegacyListener(SensorManager.SENSOR_HUMAN, Sensor.TYPE_HUMAN,
++                listener, sensors);
+     }
+ 
+     private void unregisterLegacyListener(int legacyType, int type,
+diff --git a/frameworks/base/core/java/android/hardware/Sensor.java b/frameworks/base/core/java/android/hardware/Sensor.java
+old mode 100644
+new mode 100755
+index f02e484..4ae03a9
+--- a/frameworks/base/core/java/android/hardware/Sensor.java
++++ b/frameworks/base/core/java/android/hardware/Sensor.java
+@@ -684,6 +684,20 @@ public final class Sensor {
+             "android.sensor.accelerometer_uncalibrated";
+ 
+     /**
++     * A constant string describing a human proximity sensor.
++     *
++     * See {@link android.hardware.SensorEvent#values SensorEvent.values} for more details.
++     */
++    public static final int TYPE_HUMAN = 36;
++
++    /**
++     * A constant string describing a human proximity sensor.
++     *
++     * @see #TYPE_HUMAN
++     */
++    public static final String STRING_TYPE_HUMAN = "android.sensor.human";
++
++    /**
+      * A constant describing all sensor types.
+      */
+ 
+@@ -1215,6 +1229,9 @@ public final class Sensor {
+             case TYPE_ACCELEROMETER_UNCALIBRATED:
+                 mStringType = STRING_TYPE_ACCELEROMETER_UNCALIBRATED;
+                 return true;
++            case TYPE_HUMAN:
++                mStringType = STRING_TYPE_HUMAN;
++                return true;
+             default:
+                 return false;
+         }
+diff --git a/frameworks/base/core/java/android/hardware/SensorManager.java b/frameworks/base/core/java/android/hardware/SensorManager.java
+old mode 100644
+new mode 100755
+index e1cd451..3ebcf33
+--- a/frameworks/base/core/java/android/hardware/SensorManager.java
++++ b/frameworks/base/core/java/android/hardware/SensorManager.java
+@@ -165,6 +165,15 @@ public abstract class SensorManager {
+      */
+     @Deprecated
+     public static final int SENSOR_ORIENTATION_RAW = 1 << 7;
++    
++    /**
++     * A constant describing an human proximity sensor. See
++     * {@link android.hardware.SensorListener SensorListener} for more details.
++     *
++     * @deprecated use {@link android.hardware.Sensor Sensor} instead.
++     */
++    @Deprecated
++    public static final int SENSOR_HUMAN = 1 << 8;
+ 
+     /**
+      * A constant that includes all sensors
+@@ -172,7 +181,7 @@ public abstract class SensorManager {
+      * @deprecated use {@link android.hardware.Sensor Sensor} instead.
+      */
+     @Deprecated
+-    public static final int SENSOR_ALL = 0x7F;
++    public static final int SENSOR_ALL = 0xFF;
+ 
+     /**
+      * Smallest sensor ID
+diff --git a/frameworks/native/include/android/sensor.h b/frameworks/native/include/android/sensor.h
+old mode 100644
+new mode 100755
+index 7f46087..50e8da1
+--- a/frameworks/native/include/android/sensor.h
++++ b/frameworks/native/include/android/sensor.h
+@@ -123,7 +123,15 @@ enum {
+      *  All values are in SI units (m/s^2) and measure the acceleration of the
+      *  device not including the force of gravity.
+      */
+-    ASENSOR_TYPE_LINEAR_ACCELERATION = 10
++    ASENSOR_TYPE_LINEAR_ACCELERATION = 10,
++    
++    /**
++     * {@link ASENSOR_TYPE_HUMAN}
++     * reporting-mode: on-change
++     *
++     * The human sensor value is returned in SI lux units.
++     */
++    ASENSOR_TYPE_HUMAN               = 36
+ };
+ 
+ /**
+@@ -273,6 +281,7 @@ typedef struct ASensorEvent {
+             ASensorVector   acceleration;
+             ASensorVector   magnetic;
+             float           temperature;
++            float           human;
+             float           distance;
+             float           light;
+             float           pressure;
+diff --git a/frameworks/native/libs/sensor/include/sensor/Sensor.h b/frameworks/native/libs/sensor/include/sensor/Sensor.h
+old mode 100644
+new mode 100755
+index 6926f7f..582d1ef
+--- a/frameworks/native/libs/sensor/include/sensor/Sensor.h
++++ b/frameworks/native/libs/sensor/include/sensor/Sensor.h
+@@ -49,7 +49,8 @@ public:
+         TYPE_MAGNETIC_FIELD = ASENSOR_TYPE_MAGNETIC_FIELD,
+         TYPE_GYROSCOPE      = ASENSOR_TYPE_GYROSCOPE,
+         TYPE_LIGHT          = ASENSOR_TYPE_LIGHT,
+-        TYPE_PROXIMITY      = ASENSOR_TYPE_PROXIMITY
++        TYPE_PROXIMITY      = ASENSOR_TYPE_PROXIMITY,
++        TYPE_HUMAN          = ASENSOR_TYPE_HUMAN
+     };
+ 
+     struct uuid_t{
+diff --git a/hardware/interfaces/current.txt b/hardware/interfaces/current.txt
+index beaf884..ca888ef 100755
+--- a/hardware/interfaces/current.txt
++++ b/hardware/interfaces/current.txt
+@@ -141,7 +141,7 @@ d183e406ef0897df2117a9dde384e8e6ea4fa6ab1c7f6f28e65b87011218c9ea android.hardwar
+ 7f9417a0ccf78ea042ec7a8ac8e3750346d4d9d7e5ae01b1b35fde303f47c24d android.hardware.renderscript@1.0::IDevice
+ fc6f325b266b32353f7d1534fbe58e0d368265a12b77fa396fb556e8c443f739 android.hardware.renderscript@1.0::types
+ 89585ff541c319de4091a5a0b687dd526ac81c6382ffd7b979a4164b3d7419a6 android.hardware.sensors@1.0::ISensors
+-e04ab978fc28f4c515f4a75617dfda8607733a64f13666beeb0e604a07a39333 android.hardware.sensors@1.0::types
++215aacd44c05128eb919701cf71eae73a46fa4402793609668b974ad600a0f2b android.hardware.sensors@1.0::types
+ 5befc019cbe94953661e2cdb95e3cf64f5e565c29403e1c2daecc2be44e0a55c android.hardware.soundtrigger@2.0::ISoundTriggerHw
+ d7ec5f612a5e0a59ea4f2b61317e208ff56dd50920fd4eb441e0cbc8f97e4f49 android.hardware.soundtrigger@2.0::ISoundTriggerHwCallback
+ 5bee9e70f7e5ec7ee252883b28f98f12b59960f4c2a0b4cc9a4526e4669ebcd4 android.hardware.soundtrigger@2.0::types
+diff --git a/hardware/interfaces/sensors/1.0/default/convert.cpp b/hardware/interfaces/sensors/1.0/default/convert.cpp
+old mode 100644
+new mode 100755
+index a5747d4..00e75fe
+--- a/hardware/interfaces/sensors/1.0/default/convert.cpp
++++ b/hardware/interfaces/sensors/1.0/default/convert.cpp
+@@ -196,6 +196,12 @@ void convertFromSensorEvent(const sensors_event_t &src, Event *dst) {
+           break;
+       }
+ 
++      case SensorType::HUMAN:
++      {
++          memcpy(dst->u.data.data(), &src.human, sizeof(float));
++          break;
++      }
++
+       default:
+       {
+           CHECK_GE((int32_t)dst->sensorType,
+@@ -341,6 +347,12 @@ void convertToSensorEvent(const Event &src, sensors_event_t *dst) {
+             break;
+         }
+ 
++        case SensorType::HUMAN:
++        {
++            memcpy(&dst->human, src.u.data.data(), sizeof(float));
++            break;
++        }
++
+         default:
+         {
+             CHECK_GE((int32_t)src.sensorType,
+diff --git a/hardware/interfaces/sensors/1.0/types.hal b/hardware/interfaces/sensors/1.0/types.hal
+old mode 100644
+new mode 100755
+index 3926e2f..ff7a518
+--- a/hardware/interfaces/sensors/1.0/types.hal
++++ b/hardware/interfaces/sensors/1.0/types.hal
+@@ -716,6 +716,8 @@ enum SensorType : int32_t {
+      */
+     ACCELEROMETER_UNCALIBRATED      = 35,
+ 
++    HUMAN                           = 36,
++
+     /**
+      * Base for device manufacturers private sensor types.
+      * These sensor types can't be exposed in the SDK.
+diff --git a/hardware/libhardware/include/hardware/sensors-base.h b/hardware/libhardware/include/hardware/sensors-base.h
+old mode 100644
+new mode 100755
+index b0f6223..221cc2a
+--- a/hardware/libhardware/include/hardware/sensors-base.h
++++ b/hardware/libhardware/include/hardware/sensors-base.h
+@@ -51,6 +51,7 @@ enum {
+     SENSOR_TYPE_ADDITIONAL_INFO = 33,
+     SENSOR_TYPE_LOW_LATENCY_OFFBODY_DETECT = 34,
+     SENSOR_TYPE_ACCELEROMETER_UNCALIBRATED = 35,
++    SENSOR_TYPE_HUMAN = 36,
+     SENSOR_TYPE_DEVICE_PRIVATE_BASE = 65536, // 0x10000
+ };
+ 
+diff --git a/hardware/libhardware/include/hardware/sensors.h b/hardware/libhardware/include/hardware/sensors.h
+old mode 100644
+new mode 100755
+index dde997f..befebc8
+--- a/hardware/libhardware/include/hardware/sensors.h
++++ b/hardware/libhardware/include/hardware/sensors.h
+@@ -187,6 +187,15 @@ enum {
+ #define SENSOR_STRING_TYPE_ACCELEROMETER_UNCALIBRATED   "android.sensor.accelerometer_uncalibrated"
+ 
+ /**
++ * SENSOR_TYPE_HUMAN
++ * reporting-mode: one-shot
++ *
++ * Custom human sensor, for detecting human proximity.
++ */
++#define SENSOR_TYPE_HUMAN                                      (36)
++#define SENSOR_STRING_TYPE_HUMAN                               "android.sensor.human"
++
++/**
+  * Values returned by the accelerometer in various locations in the universe.
+  * all values are in SI units (m/s^2)
+  */
+@@ -329,6 +338,9 @@ typedef struct sensors_event_t {
+             /* temperature is in degrees centigrade (Celsius) */
+             float           temperature;
+ 
++            /* human values indicates whether someone is near*/
++            float           human;
++
+             /* distance in centimeters */
+             float           distance;
+ 
+diff --git a/hardware/rockchip/omx_il/include/rockchip/git_info.h b/hardware/rockchip/omx_il/include/rockchip/git_info.h
+index dea5081..b97151e 100644
+--- a/hardware/rockchip/omx_il/include/rockchip/git_info.h
++++ b/hardware/rockchip/omx_il/include/rockchip/git_info.h
+@@ -1 +1 @@
+-#define OMX_COMPILE_INFO      "author:  shenhb\n time: Mon, 16 Sep 2019 16:25:48 +0800 git commit 304c40065789ce4f3c2b7504a61345d67dd103c6 "
++#define OMX_COMPILE_INFO      "author:  shenhb\n time: Wed, 06 Nov 2019 17:20:57 +0800 git commit a1daba282a5f9162459ed7cdb769ef1798bee08f "
+diff --git a/hardware/rockchip/sensor/st/Android.mk b/hardware/rockchip/sensor/st/Android.mk
+index 55a0480..c2f1bdf 100755
+--- a/hardware/rockchip/sensor/st/Android.mk
++++ b/hardware/rockchip/sensor/st/Android.mk
+@@ -60,8 +60,9 @@ LOCAL_SRC_FILES := \
+ 	LightSensor.cpp \
+ 	ProximitySensor.cpp \
+ 	PressureSensor.cpp \
+-	TemperatureSensor.cpp
+-				
++	TemperatureSensor.cpp \
++	HumanSensor.cpp
++
+ LOCAL_SHARED_LIBRARIES := \
+ 	liblog \
+ 	libcutils \
+diff --git a/hardware/rockchip/sensor/st/HumanSensor.cpp b/hardware/rockchip/sensor/st/HumanSensor.cpp
+new file mode 100755
+index 0000000..2cc0c3a
+--- /dev/null
++++ b/hardware/rockchip/sensor/st/HumanSensor.cpp
+@@ -0,0 +1,159 @@
++/*********************************************************************************
++* Copyright 2019 Bob Shen
++* FileName: HumanSensor.cpp
++* Author: Bob Shen
++* Version: 1.0.0
++* Date: 2019-7-26
++* Description:
++*     Custom human sensor for detecting human proximity.
++*
++* Revision:
++*     Date:
++*     Reviser:
++*     Description:
++*********************************************************************************/
++
++#include <fcntl.h>
++#include <errno.h>
++#include <math.h>
++#include <poll.h>
++#include <unistd.h>
++#include <dirent.h>
++#include <math.h>
++#include <sys/select.h>
++#include <cutils/log.h>
++#include <utils/BitSet.h>
++#include <cutils/properties.h>
++#include <linux/ioctl.h>
++
++#include "HumanSensor.h"
++
++// ioctl cmd
++#define MW_SENSOR_IOC_MAGIC  'm'
++
++#define MW_SENSOR_IOC_ENABLE _IOW(MW_SENSOR_IOC_MAGIC, 1, int)
++#define MW_SENSOR_IOC_SET_RATE _IOW(MW_SENSOR_IOC_MAGIC, 2, int)
++
++HumanSensor::HumanSensor()
++    : SensorBase(HUMAN_DEVICE_NAME, "mwsensor"),
++      mEnabled(0),
++      mInputReader(32)
++{
++    mPendingEvent.version = sizeof(sensors_event_t);
++    mPendingEvent.sensor = ID_HUMAN;
++    mPendingEvent.type = SENSOR_TYPE_HUMAN;
++    memset(mPendingEvent.data, 0x00, sizeof(mPendingEvent.data));
++
++    int err = 0;
++    err = open_device();
++    err = err < 0 ? -errno : 0;
++    if (err) {
++        LOGE("%s:%s\n", __func__, strerror(-err));
++        return;
++    }
++}
++
++HumanSensor::~HumanSensor()
++{
++    if (mEnabled) {
++        enable(0, 0);
++    }
++
++    if (dev_fd > 0) {
++        close(dev_fd);
++        dev_fd = -1;
++    }
++}
++
++int HumanSensor::enable(int32_t, int en)
++{
++    int newState = en ? 1 : 0;
++    int err = 0;
++
++    if (newState != mEnabled) {
++        if (dev_fd < 0) {
++            open_device();
++        }
++
++        if (0 > (err = ioctl(dev_fd, MW_SENSOR_IOC_ENABLE, &newState))) {
++            LOGE("fail to perform MW_SENSOR_IOC_ENABLE, err = %d, error is '%s'", err, strerror(errno));
++            goto EXIT;
++        }
++
++        mEnabled = newState;
++    }
++
++EXIT:
++    return err;
++}
++
++int HumanSensor::setDelay(int32_t handle, int64_t ns)
++{
++    int err = 0;
++
++    if (ns < 0) {
++        return -EINVAL;
++    }
++
++    if (dev_fd < 0) {
++        open_device();
++    }
++
++    short delay = ns / 1000000;
++
++    if ((err = ioctl(dev_fd, MW_SENSOR_IOC_SET_RATE, &delay)) < 0) {
++        LOGE("fail to perform MW_SENSOR_IOC_SET_RATE, result = %d, error is '%s'", err, strerror(errno));
++    }
++
++    return err;
++}
++
++int HumanSensor::isActivated(int /* handle */)
++{
++    return mEnabled;
++}
++
++int HumanSensor::readEvents(sensors_event_t* data, int count)
++{
++    if (count < 1) {
++        return -EINVAL;
++    }
++
++    ssize_t n = mInputReader.fill(data_fd);
++    if (n < 0) {
++        return n;
++    }
++
++    int numEventReceived = 0;
++    input_event const* event;
++
++    while (count && mInputReader.readEvent(&event)) {
++        int type = event->type;
++
++        LOGI("HumanSensor: read event (type=%d, code=%d)", type, event->code);
++
++        if (type == EV_REL) {
++            processEvent(event->code, event->value);
++        } else if (type == EV_SYN) {
++            mPendingEvent.timestamp = getTimestamp();
++            *data++ = mPendingEvent;
++            count--;
++            numEventReceived++;
++        } else {
++            LOGE("HumanSensor: unknown event (type=%d, code=%d)", type, event->code);
++        }
++
++        mInputReader.next();
++    }
++
++    return numEventReceived;
++}
++
++void HumanSensor::processEvent(int code, int value)
++{
++    switch (code) {
++        case EVENT_TYPE_HUMAN:
++            mPendingEvent.human = value;
++            break;
++    }
++}
+diff --git a/hardware/rockchip/sensor/st/HumanSensor.h b/hardware/rockchip/sensor/st/HumanSensor.h
+new file mode 100755
+index 0000000..45bb809
+--- /dev/null
++++ b/hardware/rockchip/sensor/st/HumanSensor.h
+@@ -0,0 +1,47 @@
++/*********************************************************************************
++* Copyright 2019 Bob Shen
++* FileName: HumanSensor.h
++* Author: Bob Shen
++* Version: 1.0.0
++* Date: 2019-7-26
++* Description:
++*     Custom human sensor for detecting human proximity.
++*
++* Revision:
++*     Date:
++*     Reviser:
++*     Description:
++*********************************************************************************/
++
++#ifndef ANDROID_HUMAN_SENSOR_H
++#define ANDROID_HUMAN_SENSOR_H
++
++#include <stdint.h>
++#include <errno.h>
++#include <sys/cdefs.h>
++#include <sys/types.h>
++
++#include "nusensors.h"
++#include "SensorBase.h"
++#include "InputEventReader.h"
++
++struct input_event;
++
++class HumanSensor : public SensorBase
++{
++    private:
++        int mEnabled;
++        InputEventCircularReader mInputReader;
++        sensors_event_t mPendingEvent;
++
++    public:
++        HumanSensor();
++        virtual ~HumanSensor();
++        virtual int readEvents(sensors_event_t* data, int count);
++        void processEvent(int code, int value);
++        virtual int setDelay(int32_t handle, int64_t ns);
++        virtual int enable(int32_t handle, int enabled);
++        virtual int isActivated(int handle);
++};
++
++#endif  // ANDROID_HUMAN_SENSOR_H
+diff --git a/hardware/rockchip/sensor/st/nusensors.cpp b/hardware/rockchip/sensor/st/nusensors.cpp
+index e22ac2a..1597b48 100755
+--- a/hardware/rockchip/sensor/st/nusensors.cpp
++++ b/hardware/rockchip/sensor/st/nusensors.cpp
+@@ -37,6 +37,7 @@
+ #include "GyroSensor.h"
+ #include "PressureSensor.h"
+ #include "TemperatureSensor.h"
++#include "HumanSensor.h"
+ 
+ /*****************************************************************************/
+ 
+@@ -62,7 +63,8 @@ private:
+         akm             = 3,
+         gyro            = 4,
+         pressure        = 5,
+-        temperature		= 6,
++        temperature     = 6,
++        human           = 7,
+         numSensorDrivers,
+         numFds,
+     };
+@@ -77,17 +79,20 @@ private:
+             case ID_A:
+                 return mma;
+             case ID_M:
+-                return akm;	
++                return akm;
+             case ID_P:
+                 return proximity;
+             case ID_L:
+-                return light;	
++                return light;
+             case ID_GY:
+                 return gyro;
+             case ID_PR:
+                 return pressure;
+             case ID_TMP:
+                 return temperature;
++            case ID_HUMAN:
++                return human;
++
+         }
+         return -EINVAL;
+     }
+@@ -136,6 +141,11 @@ sensors_poll_context_t::sensors_poll_context_t()
+     mPollFds[temperature].events = POLLIN;
+     mPollFds[temperature].revents = 0;
+ 
++    mSensors[human] = new HumanSensor();
++    mPollFds[human].fd = mSensors[human]->getFd();
++    mPollFds[human].events = POLLIN;
++    mPollFds[human].revents = 0;
++
+     int flushFds[2];
+     int result = pipe(flushFds);
+     LOGE_IF(result<0, "error creating flush pipe (%s)", strerror(errno));
+diff --git a/hardware/rockchip/sensor/st/nusensors.h b/hardware/rockchip/sensor/st/nusensors.h
+index 65444e4..b9ab025 100755
+--- a/hardware/rockchip/sensor/st/nusensors.h
++++ b/hardware/rockchip/sensor/st/nusensors.h
+@@ -68,6 +68,7 @@ int init_nusensors(hw_module_t const* module, hw_device_t** device);
+ #define ID_GY	(5)
+ #define ID_PR	(6)
+ #define ID_TMP	(7)
++#define ID_HUMAN (8)
+ 
+ 
+ /*****************************************************************************/
+@@ -90,7 +91,7 @@ int init_nusensors(hw_module_t const* module, hw_device_t** device);
+ #define GY_DEVICE_NAME      "/dev/gyrosensor"
+ #define PR_DEVICE_NAME      "/dev/pressure"
+ #define TMP_DEVICE_NAME     "/dev/temperature"
+-
++#define HUMAN_DEVICE_NAME   "/dev/mwsensor"
+ 
+ 
+ 
+@@ -121,7 +122,7 @@ int init_nusensors(hw_module_t const* module, hw_device_t** device);
+ 
+ #define EVENT_TYPE_PRESSURE         ABS_PRESSURE
+ 
+-
++#define EVENT_TYPE_HUMAN            REL_MISC
+ 
+ /** ±Ì’˜œ‡Õ¨µƒ º”ÀŸ∂»ŒÔ¿Ì¡øµƒ ±∫Ú, Android …œ≤„ π”√µƒ  ˝÷µ ∫Õ sensor  ˝æ›…Ë±∏ÀÕ≥ˆµƒ  ˝÷µ µƒ ±»÷µ. */
+ #define ACCELERATION_RATIO_ANDROID_TO_HW        (9.80665f / 16384)   //16bit sensor ˝æ›£¨¡ø≥ÃŒ™+-2G ±∫Úµƒ±»¿˝
+diff --git a/hardware/rockchip/sensor/st/sensors.c b/hardware/rockchip/sensor/st/sensors.c
+index 9aff9e2..dd8e019 100755
+--- a/hardware/rockchip/sensor/st/sensors.c
++++ b/hardware/rockchip/sensor/st/sensors.c
+@@ -164,6 +164,17 @@ static const struct sensor_t sSensorList[] = {
+           .reserved   = {}
+         },
+         #endif
++        { .name       = "Human sensor",
++          .vendor     = "The Android Open Source Project",
++          .version    = 1,
++          .handle     = SENSORS_HANDLE_BASE+ID_HUMAN,
++          .type       = SENSOR_TYPE_HUMAN,
++          .maxRange   = 110000.0f,
++          .resolution = 1.0f,
++          .power      = 1.0f,
++          .minDelay   = 5000,
++          .reserved   = {}
++        },
+ };
+ 
+ static int open_sensors(const struct hw_module_t* module, const char* name,
+diff --git a/kernel/arch/arm/configs/topband_pos_defconfig b/kernel/arch/arm/configs/topband_pos_defconfig
+index d3f6d6b..587504d 100755
+--- a/kernel/arch/arm/configs/topband_pos_defconfig
++++ b/kernel/arch/arm/configs/topband_pos_defconfig
+@@ -356,7 +356,7 @@ CONFIG_INPUT_KEYCHORD=y
+ CONFIG_INPUT_RK8XX_PWRKEY=y
+ CONFIG_INPUT_UINPUT=y
+ CONFIG_INPUT_GPIO=y
++CONFIG_SENSORS_MICROWAVE=y
+ # CONFIG_SERIO is not set
+ # CONFIG_VT is not set
+ # CONFIG_LEGACY_PTYS is not set
+diff --git a/kernel/drivers/input/sensors/Kconfig b/kernel/drivers/input/sensors/Kconfig
+old mode 100644
+new mode 100755
+index ebff943..fdfdf4a
+--- a/kernel/drivers/input/sensors/Kconfig
++++ b/kernel/drivers/input/sensors/Kconfig
+@@ -19,5 +19,6 @@ source "drivers/input/sensors/psensor/Kconfig"
+ source "drivers/input/sensors/temperature/Kconfig"
+ source "drivers/input/sensors/pressure/Kconfig"
+ source "drivers/input/sensors/hall/Kconfig"
++source "drivers/input/sensors/mwsensor/Kconfig"
+ 
+ endif
+diff --git a/kernel/drivers/input/sensors/Makefile b/kernel/drivers/input/sensors/Makefile
+old mode 100644
+new mode 100755
+index 58992e9..550933d
+--- a/kernel/drivers/input/sensors/Makefile
++++ b/kernel/drivers/input/sensors/Makefile
+@@ -1,6 +1,6 @@
+ # SPDX-License-Identifier: GPL-2.0
+ # sensor drivers
+-obj-$(CONFIG_ANGLE_DEVICE)                    += angle/
++obj-$(CONFIG_ANGLE_DEVICE)				+= angle/
+ obj-$(CONFIG_GSENSOR_DEVICE)			+= accel/
+ obj-$(CONFIG_COMPASS_DEVICE)			+= compass/
+ obj-$(CONFIG_GYROSCOPE_DEVICE)			+= gyro/
+@@ -8,7 +8,8 @@ obj-$(CONFIG_LIGHT_DEVICE)				+= lsensor/
+ obj-$(CONFIG_PROXIMITY_DEVICE)			+= psensor/
+ obj-$(CONFIG_TEMPERATURE_DEVICE)		+= temperature/
+ obj-$(CONFIG_PRESSURE_DEVICE)			+= pressure/
+-obj-$(CONFIG_HALL_DEVICE)			+= hall/
++obj-$(CONFIG_HALL_DEVICE)				+= hall/
++obj-$(CONFIG_SENSORS_MICROWAVE)			+= mwsensor/
+ 
+ 
+ obj-$(CONFIG_SENSOR_DEVICE)				+= sensor-i2c.o
+diff --git a/kernel/drivers/input/sensors/mwsensor/Kconfig b/kernel/drivers/input/sensors/mwsensor/Kconfig
+new file mode 100755
+index 0000000..f1bbd6c
+--- /dev/null
++++ b/kernel/drivers/input/sensors/mwsensor/Kconfig
+@@ -0,0 +1,8 @@
++config SENSORS_MICROWAVE
++         tristate "Microwave sensor"
++         help
++           This driver support the microwave sensor.
++
++           To compile this driver as a module, choose M here. The module
++	   will be called microwave.
++
+diff --git a/kernel/drivers/input/sensors/mwsensor/Makefile b/kernel/drivers/input/sensors/mwsensor/Makefile
+new file mode 100755
+index 0000000..bef27e6
+--- /dev/null
++++ b/kernel/drivers/input/sensors/mwsensor/Makefile
+@@ -0,0 +1,2 @@
++obj-$(CONFIG_SENSORS_MICROWAVE)  += mwsensor.o
++
+diff --git a/kernel/drivers/input/sensors/mwsensor/mwsensor.c b/kernel/drivers/input/sensors/mwsensor/mwsensor.c
+new file mode 100755
+index 0000000..16b4c58
+--- /dev/null
++++ b/kernel/drivers/input/sensors/mwsensor/mwsensor.c
+@@ -0,0 +1,478 @@
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/device.h>
++#include <linux/errno.h>
++#include <linux/err.h>
++#include <linux/kernel.h>
++#include <linux/ctype.h>
++#include <linux/delay.h>
++#include <linux/idr.h>
++#include <linux/sched.h>
++#include <linux/slab.h>
++#include <linux/interrupt.h>
++#include <linux/signal.h>
++#include <linux/pm.h>
++#include <linux/notifier.h>
++#include <linux/fb.h>
++#include <linux/input.h>
++#include <linux/ioport.h>
++#include <linux/io.h>
++#include <linux/clk.h>
++#include <linux/pinctrl/consumer.h>
++#include <linux/platform_device.h>
++#include <linux/kthread.h>
++#include <linux/time.h>
++#include <linux/timer.h>
++#include <linux/regulator/consumer.h>
++#include <linux/gpio.h>
++#include <linux/of.h>
++#include <linux/of_irq.h>
++#include <linux/of_gpio.h>
++#include <linux/of_platform.h>
++#include <linux/miscdevice.h>
++#include <linux/uaccess.h>
++
++#define MW_SENSOR_NAME "mwsensor"
++
++#define MW_SENSOR_NEAR 1
++#define MW_SENSOR_FAR  2
++
++// ioctl cmd
++#define MW_SENSOR_IOC_MAGIC  'm'
++
++#define MW_SENSOR_IOC_ENABLE _IOW(MW_SENSOR_IOC_MAGIC, 1, int)
++#define MW_SENSOR_IOC_SET_RATE _IOW(MW_SENSOR_IOC_MAGIC, 2, int)
++
++#define MW_SENSOR_IOC_MAXNR 2
++
++
++struct mw_sensor_data {
++    struct platform_device  *platform_dev;
++    struct miscdevice       mw_sensor_device;
++    struct input_dev        *input_dev;
++    struct notifier_block   notifier;
++    
++    int                     irq;
++    int                     irq_gpio;
++    unsigned long           suspend_time;
++    bool                    is_suspended;
++    u32                     is_delay;
++    u32                     is_poll;
++    u32                     delay_time;
++    bool                    enabled;
++};
++
++static inline uint32_t gettime_now(void)
++{
++	struct timeval tv;
++	do_gettimeofday(&tv);
++	return tv.tv_sec;
++}
++
++static void mw_sensor_report_event(struct mw_sensor_data *mw_sensor, s32 data)
++{
++    struct input_dev *input = mw_sensor->input_dev;
++
++    if (!mw_sensor->enabled) {
++        return;
++    }
++
++    input_report_rel(input, REL_MISC, data);
++    input_sync(input);
++}
++
++static int mw_sensor_enable(struct mw_sensor_data *mw_sensor) {
++    mw_sensor->enabled = true;
++    if (gpio_get_value(mw_sensor->irq_gpio)) {
++         mw_sensor_report_event(mw_sensor, MW_SENSOR_NEAR); 
++    } else {
++        mw_sensor_report_event(mw_sensor, MW_SENSOR_FAR); 
++    }
++    return 0;
++}
++
++static int mw_sensor_disable(struct mw_sensor_data *mw_sensor) {
++    mw_sensor->enabled = false;
++    return 0;
++}
++
++static int mw_sensor_suspend(struct mw_sensor_data *mw_sensor)
++{
++    dev_info(&mw_sensor->platform_dev->dev, "mw_sensor_suspend\n");
++    mw_sensor->suspend_time = gettime_now();
++    mw_sensor->is_suspended = true;
++    //enable_irq_wake(mw_sensor->irq);
++    
++    return 0;
++}
++
++static int mw_sensor_resume(struct mw_sensor_data *mw_sensor)
++{
++    dev_info(&mw_sensor->platform_dev->dev, "mw_sensor_resume\n");
++    //mw_sensor->is_suspended = false;
++    //disable_irq_wake(mw_sensor->irq);
++
++    return 0;
++}
++
++static int mw_sensor_fb_event_notify(struct notifier_block *noti,
++                                     unsigned long event, void *data)
++{
++    int *blank;
++    struct fb_event *ev_data = data;
++    struct mw_sensor_data *mw_sensor = container_of(noti,
++                                struct mw_sensor_data, notifier);
++
++    if (ev_data && ev_data->data && event == FB_EVENT_BLANK && mw_sensor) {
++        blank = ev_data->data;
++        if (*blank == FB_BLANK_UNBLANK) {
++            mw_sensor_resume(mw_sensor);
++        } else if (*blank == FB_BLANK_POWERDOWN) {
++            mw_sensor_suspend(mw_sensor);
++        }
++    }
++
++    return NOTIFY_OK;
++}
++
++static void mw_sensor_wakeup(struct mw_sensor_data *mw_sensor) {
++    dev_info(&mw_sensor->platform_dev->dev, "%s, wake up\n", __func__);
++    
++    input_report_key(mw_sensor->input_dev, KEY_POWER, 1);
++    input_sync(mw_sensor->input_dev);
++    input_report_key(mw_sensor->input_dev, KEY_POWER, 0);
++    input_sync(mw_sensor->input_dev);
++}
++
++static irqreturn_t mw_sensor_irq_handle(int irq, void *dev_id)
++{
++    struct mw_sensor_data *mw_sensor = dev_id;
++    unsigned long cur_time = gettime_now();
++
++    // dts‰∏≠ÈÖçÁΩÆÊòØÂê¶Âª∂Êó∂ÔºåÂõ†‰∏∫ÂæÖÊú∫ËøáÁ®ã‰ºö‰∫ßÁîüÂπ≤Êâ∞ÔºåÂØºËá¥ÂæÆÊ≥¢SensorËØØËß¶Âèë
++    if (!mw_sensor->is_delay || abs(cur_time - mw_sensor->suspend_time) > mw_sensor->delay_time) {
++        if (gpio_get_value(mw_sensor->irq_gpio)) {
++            if (mw_sensor->is_suspended) {
++                mw_sensor->is_suspended = false;
++                mw_sensor_wakeup(mw_sensor);
++                msleep(100);
++                mw_sensor_report_event(mw_sensor, MW_SENSOR_NEAR);
++            } else {
++                mw_sensor_report_event(mw_sensor, MW_SENSOR_NEAR); 
++            }
++        } else {
++            mw_sensor_report_event(mw_sensor, MW_SENSOR_FAR); 
++        }
++    }
++
++    return IRQ_HANDLED;
++}
++
++static void mw_sensor_free_irq(struct mw_sensor_data *mw_sensor)
++{
++    if(mw_sensor) {
++        free_irq(mw_sensor->irq, mw_sensor);
++    }
++}
++
++static void mw_sensor_free_io_port(struct mw_sensor_data *mw_sensor)
++{
++    if(gpio_is_valid(mw_sensor->irq_gpio)) {
++        gpio_free(mw_sensor->irq_gpio);
++    }
++    return;
++}
++
++static int mw_sensor_parse_dt(struct device *dev,
++                              struct mw_sensor_data *mw_sensor)
++{
++    int ret = 0;
++    struct device_node *np = dev->of_node;
++
++    mw_sensor->irq_gpio = of_get_named_gpio(np, "irq-gpios", 0);
++    if(!gpio_is_valid(mw_sensor->irq_gpio)) {
++        dev_err(dev, "No valid irq gpio");
++        return -1;
++    }
++
++    ret = of_property_read_u32(np, "mwsensor,is_delay", &mw_sensor->is_delay);
++    if (ret) {
++        mw_sensor->is_delay = 0;
++    }
++
++    ret = of_property_read_u32(np, "mwsensor,delay_time", &mw_sensor->delay_time);
++    if (ret) {
++        mw_sensor->delay_time = 3;
++    }
++
++    ret = of_property_read_u32(np, "mwsensor,is_poll", &mw_sensor->is_poll);
++    if (ret) {
++        mw_sensor->is_poll = 0;
++    }
++
++    dev_info(dev, "mw_sensor_parse_dt, is_delay=%d is_poll=%d delay_time=%d\n", 
++        mw_sensor->is_delay, mw_sensor->is_poll, mw_sensor->delay_time);
++
++    return 0;
++}
++
++static int mw_sensor_request_io_port(struct mw_sensor_data *mw_sensor)
++{
++    int ret = 0;
++
++    if(gpio_is_valid(mw_sensor->irq_gpio)) {
++        ret = gpio_request(mw_sensor->irq_gpio, "mw_sensor_int");
++
++        if(ret < 0) {
++            dev_err(&mw_sensor->platform_dev->dev,
++                    "Failed to request GPIO:%d, ERRNO:%d\n",
++                    (s32)mw_sensor->irq_gpio, ret);
++            return -ENODEV;
++        }
++
++        gpio_direction_input(mw_sensor->irq_gpio);
++        dev_info(&mw_sensor->platform_dev->dev, "Success request irq-gpio\n");
++    }
++
++    return ret;
++}
++
++static s8 mw_sensor_request_input_dev(struct mw_sensor_data *mw_sensor)
++{
++    s8 ret = -1;
++
++    mw_sensor->input_dev = input_allocate_device();
++    if(mw_sensor->input_dev == NULL) {
++        dev_err(&mw_sensor->platform_dev->dev, "Failed to allocate input device\n");
++        return -ENOMEM;
++    }
++
++    mw_sensor->input_dev->name = MW_SENSOR_NAME;
++    input_set_drvdata(mw_sensor->input_dev, mw_sensor);
++
++    input_set_capability(mw_sensor->input_dev, EV_KEY, KEY_POWER);
++    input_set_capability(mw_sensor->input_dev, EV_REL, REL_MISC);
++
++    ret = input_register_device(mw_sensor->input_dev);
++    if(ret) {
++        dev_err(&mw_sensor->platform_dev->dev, "Register %s input device failed\n",
++                mw_sensor->input_dev->name);
++        input_free_device(mw_sensor->input_dev);
++        return -ENODEV;
++    }
++
++    return 0;
++}
++
++static int mw_sensor_dev_open(struct inode *inode, struct file *filp)
++{
++    int ret = 0;
++
++    struct mw_sensor_data *mw_sensor = container_of(filp->private_data,
++                                  struct mw_sensor_data,
++                                  mw_sensor_device);
++    filp->private_data = mw_sensor;
++    dev_info(&mw_sensor->platform_dev->dev,
++             "device node major=%d, minor=%d\n", imajor(inode), iminor(inode));
++
++    return ret;
++}
++
++static long mw_sensor_dev_ioctl(struct file *pfile,
++                                 unsigned int cmd, unsigned long arg)
++{
++    int ret = 0;
++    int data = 0;
++    struct mw_sensor_data *mw_sensor = pfile->private_data;
++
++    if (_IOC_TYPE(cmd) != MW_SENSOR_IOC_MAGIC) {
++        return -EINVAL;
++    }
++    if (_IOC_NR(cmd) > MW_SENSOR_IOC_MAXNR) {
++        return -EINVAL;
++    }
++
++    if (_IOC_DIR(cmd) & _IOC_READ) {
++        ret = !access_ok(VERIFY_WRITE, (void *)arg, _IOC_SIZE(cmd));
++    } else if (_IOC_DIR(cmd) & _IOC_WRITE) {
++        ret = !access_ok(VERIFY_READ, (void *)arg, _IOC_SIZE(cmd));
++    }
++    if (ret) {
++        return -EFAULT;
++    }
++
++    if (copy_from_user(&data, (int *)arg, sizeof(int))) {
++        dev_err(&mw_sensor->platform_dev->dev,
++                "%s, copy from user failed\n", __func__);
++        return -EFAULT;
++    }
++
++    dev_info(&mw_sensor->platform_dev->dev,
++             "%s, (%x, %lx): data=%d\n", __func__, cmd,
++             arg, data);
++
++    switch (cmd) {
++        case MW_SENSOR_IOC_ENABLE:
++            if (data > 0) {
++                mw_sensor_enable(mw_sensor);
++            } else {
++                mw_sensor_disable(mw_sensor);
++            }
++            break;
++
++        case MW_SENSOR_IOC_SET_RATE:
++            break;
++
++        default:
++            return -EINVAL;
++    }
++
++    return ret;
++}
++
++static const struct file_operations mw_sensor_dev_fops = {
++    .owner = THIS_MODULE,
++    .open = mw_sensor_dev_open,
++    .unlocked_ioctl = mw_sensor_dev_ioctl
++};
++
++static int mw_sensor_request_irq(struct mw_sensor_data *mw_sensor)
++{
++    int ret = 0;
++
++    /* use irq */
++    if(gpio_is_valid(mw_sensor->irq_gpio) || mw_sensor->irq > 0) {
++        if(gpio_is_valid(mw_sensor->irq_gpio))
++            mw_sensor->irq = gpio_to_irq(mw_sensor->irq_gpio);
++
++        dev_info(&mw_sensor->platform_dev->dev, "INT num %d, trigger type:%d\n",
++                 mw_sensor->irq, IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING);
++        ret = request_threaded_irq(mw_sensor->irq, NULL,
++                                   mw_sensor_irq_handle,
++                                   IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
++                                   mw_sensor->platform_dev->name,
++                                   mw_sensor);
++
++        if(ret < 0) {
++            dev_err(&mw_sensor->platform_dev->dev,
++                    "Failed to request irq %d\n", mw_sensor->irq);
++        }
++    }
++
++    return ret;
++}
++
++static int mw_sensor_probe(struct platform_device *pdev)
++{
++    int ret = 0;
++    struct mw_sensor_data *mw_sensor;
++
++    mw_sensor = devm_kzalloc(&pdev->dev, sizeof(*mw_sensor), GFP_KERNEL);
++    if(mw_sensor == NULL) {
++        dev_err(&pdev->dev, "Failed alloc ts memory\n");
++        return -ENOMEM;
++    }
++
++    if(pdev->dev.of_node) {
++        ret = mw_sensor_parse_dt(&pdev->dev, mw_sensor);
++        if(ret) {
++            dev_err(&pdev->dev, "Failed parse dts\n");
++            goto exit_free_data;
++        }
++    }
++
++    mw_sensor->platform_dev = pdev;
++
++    ret = mw_sensor_request_io_port(mw_sensor);
++    if(ret < 0) {
++        dev_err(&pdev->dev, "Failed request IO port\n");
++        goto exit_free_data;
++    }
++
++    ret = mw_sensor_request_input_dev(mw_sensor);
++    if(ret < 0) {
++        dev_err(&pdev->dev, "Failed request IO port\n");
++        goto exit_free_io_port;
++    }
++
++    ret = mw_sensor_request_irq(mw_sensor);
++    if(ret < 0) {
++        dev_err(&pdev->dev, "Failed create work thread\n");
++        goto exit_unreg_input_dev;
++    }
++
++    ret = enable_irq_wake(mw_sensor->irq);
++    if (ret < 0) {
++        dev_err(&pdev->dev, "Failed set irq wake\n");
++        goto exit_free_irq;
++    }
++
++    mw_sensor->mw_sensor_device.minor = MISC_DYNAMIC_MINOR;
++    mw_sensor->mw_sensor_device.name = MW_SENSOR_NAME;
++    mw_sensor->mw_sensor_device.fops = &mw_sensor_dev_fops;
++    ret = misc_register(&mw_sensor->mw_sensor_device);
++    if (ret) {
++        dev_err(&pdev->dev, "Failed to misc_register\n");
++        goto exit_free_irq;
++    }
++
++    mw_sensor->notifier.notifier_call = mw_sensor_fb_event_notify;
++    fb_register_client(&mw_sensor->notifier);
++
++    platform_set_drvdata(pdev, mw_sensor);
++
++    dev_info(&pdev->dev, "%s, over\n", __func__);
++    return 0;
++
++exit_free_irq:
++    free_irq(mw_sensor->irq, mw_sensor);
++    
++exit_unreg_input_dev:
++    input_unregister_device(mw_sensor->input_dev);
++    
++exit_free_io_port:
++    if(gpio_is_valid(mw_sensor->irq_gpio))
++        gpio_free(mw_sensor->irq_gpio);
++    
++exit_free_data:
++    devm_kfree(&pdev->dev, mw_sensor);
++
++    return ret;
++}
++
++static int mw_sensor_remove(struct platform_device *pdev)
++{
++    struct mw_sensor_data *mw_sensor = platform_get_drvdata(pdev);
++    input_unregister_device(mw_sensor->input_dev);
++    input_free_device(mw_sensor->input_dev);
++    fb_unregister_client(&mw_sensor->notifier);
++    mw_sensor_free_irq(mw_sensor);
++    mw_sensor_free_io_port(mw_sensor);
++    kfree(mw_sensor);
++
++    return 0;
++}
++
++static const struct of_device_id mw_sensor_of_match[] = {
++    { .compatible =  "topband,mwsensor"},
++    {},
++};
++
++MODULE_DEVICE_TABLE(of, mw_sensor_of_match);
++
++static struct platform_driver mw_sensor_driver = {
++    .probe = mw_sensor_probe,
++    .remove = mw_sensor_remove,
++    .driver = {
++        .name = MW_SENSOR_NAME,
++        .owner  = THIS_MODULE,
++        .of_match_table = mw_sensor_of_match,
++    },
++};
++
++module_platform_driver(mw_sensor_driver);
++
++MODULE_AUTHOR("shenhb@topband.com.cn");
++MODULE_DESCRIPTION("Microware Sensor");
++MODULE_VERSION("1.0");
++MODULE_LICENSE("GPL");
+diff --git a/prebuilts/sdk/api/27.txt b/prebuilts/sdk/api/27.txt
+old mode 100644
+new mode 100755
+index 25e998c..a9613a1
+--- a/prebuilts/sdk/api/27.txt
++++ b/prebuilts/sdk/api/27.txt
+@@ -15035,14 +15035,14 @@ package android.hardware {
+     field public static final deprecated int RAW_DATA_Y = 4; // 0x4
+     field public static final deprecated int RAW_DATA_Z = 5; // 0x5
+     field public static final deprecated int SENSOR_ACCELEROMETER = 2; // 0x2
+-    field public static final deprecated int SENSOR_ALL = 127; // 0x7f
++    field public static final deprecated int SENSOR_ALL = 255; // 0xff
+     field public static final int SENSOR_DELAY_FASTEST = 0; // 0x0
+     field public static final int SENSOR_DELAY_GAME = 1; // 0x1
+     field public static final int SENSOR_DELAY_NORMAL = 3; // 0x3
+     field public static final int SENSOR_DELAY_UI = 2; // 0x2
+     field public static final deprecated int SENSOR_LIGHT = 16; // 0x10
+     field public static final deprecated int SENSOR_MAGNETIC_FIELD = 8; // 0x8
+-    field public static final deprecated int SENSOR_MAX = 64; // 0x40
++    field public static final deprecated int SENSOR_MAX = 128; // 0x40
+     field public static final deprecated int SENSOR_MIN = 1; // 0x1
+     field public static final deprecated int SENSOR_ORIENTATION = 1; // 0x1
+     field public static final deprecated int SENSOR_ORIENTATION_RAW = 128; // 0x80
+diff --git a/prebuilts/sdk/system-api/27.txt b/prebuilts/sdk/system-api/27.txt
+old mode 100644
+new mode 100755
+index 2bc8a92..de92905
+--- a/prebuilts/sdk/system-api/27.txt
++++ b/prebuilts/sdk/system-api/27.txt
+@@ -15775,14 +15775,14 @@ package android.hardware {
+     field public static final deprecated int RAW_DATA_Y = 4; // 0x4
+     field public static final deprecated int RAW_DATA_Z = 5; // 0x5
+     field public static final deprecated int SENSOR_ACCELEROMETER = 2; // 0x2
+-    field public static final deprecated int SENSOR_ALL = 127; // 0x7f
++    field public static final deprecated int SENSOR_ALL = 255; // 0x7f
+     field public static final int SENSOR_DELAY_FASTEST = 0; // 0x0
+     field public static final int SENSOR_DELAY_GAME = 1; // 0x1
+     field public static final int SENSOR_DELAY_NORMAL = 3; // 0x3
+     field public static final int SENSOR_DELAY_UI = 2; // 0x2
+     field public static final deprecated int SENSOR_LIGHT = 16; // 0x10
+     field public static final deprecated int SENSOR_MAGNETIC_FIELD = 8; // 0x8
+-    field public static final deprecated int SENSOR_MAX = 64; // 0x40
++    field public static final deprecated int SENSOR_MAX = 128; // 0x40
+     field public static final deprecated int SENSOR_MIN = 1; // 0x1
+     field public static final deprecated int SENSOR_ORIENTATION = 1; // 0x1
+     field public static final deprecated int SENSOR_ORIENTATION_RAW = 128; // 0x80
